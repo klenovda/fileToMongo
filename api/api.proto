@@ -1,0 +1,50 @@
+syntax = "proto3";
+
+option go_package = "./api";
+
+import "google/protobuf/timestamp.proto";
+
+service TestTask {
+  // Get CSV-file with product list
+  rpc Fetch(FetchRequest) returns (FetchResponse);
+  //
+  rpc List(ListRequest) returns (ListResponse);
+}
+
+message FetchRequest {
+  string url = 1;
+}
+
+message FetchResponse {
+  int32 status = 1;
+}
+
+message ListRequest {
+  PagingParams paging_params = 1;
+  SortingParams sorting_params = 2;
+
+  message PagingParams {
+    int64 page = 1;
+    int64 limit = 2;
+  }
+
+  message SortingParams {
+    string param = 1;
+    Sort sort = 2;
+  }
+}
+
+message ListResponse {
+  repeated Product product = 1;
+
+  message Product {
+    string name = 1;
+    double price = 2;
+    google.protobuf.Timestamp created_at = 3;
+  }
+}
+
+enum Sort {
+  DESC = 0;
+  ASC = 1;
+}
