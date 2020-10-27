@@ -2,6 +2,8 @@ package database
 
 import (
 	"context"
+	"log"
+
 	paginate "github.com/gobeam/mongo-go-pagination"
 	"github.com/golang/protobuf/ptypes/timestamp"
 	"github.com/pkg/errors"
@@ -9,16 +11,15 @@ import (
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
-	"log"
 )
 
 const collectionName string = "products"
 
 type Product struct {
-	ID primitive.ObjectID `json:"_id" bson:"_id"`
-	Name string `json:"name" bson:"name"`
-	Price float64 `json:"price" bson:"price"`
-	Qty uint `json:"qty" bson:"qty"`
+	ID        primitive.ObjectID   `json:"_id" bson:"_id"`
+	Name      string               `json:"name" bson:"name"`
+	Price     float64              `json:"price" bson:"price"`
+	Qty       uint                 `json:"qty" bson:"qty"`
 	CreatedAt *timestamp.Timestamp `json:"created_at" bson:"created_at"`
 }
 
@@ -57,8 +58,8 @@ func (s Storage) Find(ctx context.Context, limit int64, page int64, sortField st
 	return products, nil
 }
 
-// Insert products to storage
-func (s Storage) Insert(ctx context.Context, products map[string]*Product) error {
+// Upsert products to storage
+func (s Storage) Upsert(ctx context.Context, products map[string]*Product) error {
 	collection := s.db.Collection(collectionName)
 	for _, p := range products {
 		log.Printf("product %v", p)

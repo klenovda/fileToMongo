@@ -1,10 +1,12 @@
 syntax = "proto3";
 
-option go_package = "./api";
+package api;
+
+option go_package = "./apipb";
 
 import "google/protobuf/timestamp.proto";
 
-service TestTask {
+service FileToMongo {
   // Get CSV-file with product list
   rpc Fetch(FetchRequest) returns (FetchResponse);
   //

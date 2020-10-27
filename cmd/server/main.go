@@ -2,16 +2,17 @@ package main
 
 import (
 	"context"
+	apisrv "fileToMongo/internal/app/api"
+	"fileToMongo/internal/database"
+	"fileToMongo/internal/services/productservice"
+	"fileToMongo/pkg/apipb"
+	"log"
+	"net"
+	"time"
+
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"google.golang.org/grpc"
-	"log"
-	"net"
-	apisrv "testTask/internal/app/api"
-	"testTask/internal/database"
-	"testTask/internal/services/productservice"
-	desc "testTask/pkg/api"
-	"time"
 )
 
 func main() {
@@ -40,7 +41,7 @@ func main() {
 	srv := apisrv.NewApi(productservice.NewProvider(db))
 	s := grpc.NewServer()
 
-	desc.RegisterTestTaskServer(s, srv)
+	apipb.RegisterFileToMongoServer(s, srv)
 
 	l, err := net.Listen("tcp", ":8080")
 	if err != nil {

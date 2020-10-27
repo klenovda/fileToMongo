@@ -3,31 +3,32 @@ package productservice
 import (
 	"context"
 	"encoding/csv"
-	"github.com/golang/protobuf/ptypes/timestamp"
-	"github.com/pkg/errors"
-	"go.mongodb.org/mongo-driver/bson"
+	"fileToMongo/internal/database"
+	"fileToMongo/pkg/apipb"
 	"io"
 	"log"
 	"net/http"
 	"path/filepath"
 	"strconv"
-	"testTask/internal/database"
-	desc "testTask/pkg/api"
 	"time"
+
+	"github.com/golang/protobuf/ptypes/timestamp"
+	"github.com/pkg/errors"
+	"go.mongodb.org/mongo-driver/bson"
 )
 
 const (
 	csvExtension string = ".csv"
-	csvComma rune = ';'
+	csvComma     rune   = ';'
 )
 
 type Storage interface {
 	Find(ctx context.Context, limit int64, page int64, sortField string, sortValue int, filters interface{}) ([]*database.Product, error)
-	Insert(ctx context.Context, products map[string]*database.Product) error
+	Upsert(ctx context.Context, products map[string]*database.Product) error
 }
 
 // Product
-type Provider struct{
+type Provider struct {
 	db Storage
 }
 
@@ -58,16 +59,16 @@ func (p *Provider) FetchCSV(ctx context.Context, u string) error {
 		return err
 	}
 
-//	in := `name1;100
-//name2;200
-//name1;150
-//name;175
-//name1;75
-//`
-//	data, err := getCSVData(strings.NewReader(in))
-//	if err != nil {
-//		return err
-//	}
+	//	in := `name1;100
+	//name2;200
+	//name1;150
+	//name;175
+	//name1;75
+	//`
+	//	data, err := getCSVData(strings.NewReader(in))
+	//	if err != nil {
+	//		return err
+	//	}
 
 	products := make(map[string]*database.Product, len(data))
 	if err := fillProducts(products, data); err != nil {
@@ -75,24 +76,15 @@ func (p *Provider) FetchCSV(ctx context.Context, u string) error {
 	}
 	log.Printf("result map %v", products)
 
-	if err := p.db.Insert(ctx, products); err != nil {
+	if err := p.db.Upsert(ctx, products); err != nil {
 		return err
 	}
 
 	return nil
 }
 
-func (p *Provider) List(ctx context.Context, page *desc.ListRequest_PagingParams, sort *desc.ListRequest_SortingParams) ([]*database.Product, error) {
+func (p *Provider) List(ctx context.Context, page *apipb.ListRequest_PagingParams, sort *apipb.ListRequest_SortingParams) ([]*database.Product, error) {
 	return p.db.Find(ctx, page.Limit, page.Page, sort.Param, sortValue(sort.Sort), bson.M{})
-}
-
-func getResponseByURL(u string) (io.ReadCloser, error) {
-	resp, err := http.Get(u)
-	if err != nil {
-		return nil, errors.Wrapf(err, "couldn't get response by url %s", u)
-	}
-
-	return resp.Body, nil
 }
 
 func getCSVData(reader io.Reader) ([][]string, error) {
@@ -106,8 +98,8 @@ func getCSVData(reader io.Reader) ([][]string, error) {
 	return data, nil
 }
 
-func sortValue(sort desc.Sort) int {
-	if sort == desc.Sort_ASC {
+func sortValue(sort apipb.Sort) int {
+	if sort == apipb.Sort_ASC {
 		return 1
 	}
 	return -1
@@ -127,18 +119,18 @@ func fillProducts(products map[string]*database.Product, data [][]string) error 
 
 		if p, ok := products[name]; ok {
 			products[name] = &database.Product{
-				Name: name,
-				Price: price,
-				Qty: p.Qty+1,
+				Name:      name,
+				Price:     price,
+				Qty:       p.Qty + 1,
 				CreatedAt: &timestamp.Timestamp{Seconds: time.Now().Unix()},
 			}
 			continue
 		}
 
 		products[name] = &database.Product{
-			Name: name,
-			Price: price,
-			Qty: 1,
+			Name:      name,
+			Price:     price,
+			Qty:       1,
 			CreatedAt: &timestamp.Timestamp{Seconds: time.Now().Unix()},
 		}
 	}
