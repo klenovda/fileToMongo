@@ -15,6 +15,7 @@ import (
 
 const collectionName string = "products"
 
+// Product ...
 type Product struct {
 	ID        primitive.ObjectID   `json:"_id" bson:"_id"`
 	Name      string               `json:"name" bson:"name"`
@@ -23,10 +24,12 @@ type Product struct {
 	CreatedAt *timestamp.Timestamp `json:"created_at" bson:"created_at"`
 }
 
+// Storage ...
 type Storage struct {
 	db *mongo.Database
 }
 
+// NewStorage ...
 func NewStorage(client *mongo.Client, dbName string) *Storage {
 	return &Storage{
 		db: client.Database(dbName),

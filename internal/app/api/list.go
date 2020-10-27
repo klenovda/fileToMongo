@@ -8,6 +8,7 @@ import (
 	"github.com/pkg/errors"
 )
 
+// List get list of products
 func (i *Implementation) List(ctx context.Context, req *apipb.ListRequest) (*apipb.ListResponse, error) {
 	p, err := i.product.List(ctx, req.PagingParams, req.SortingParams)
 	if err != nil {

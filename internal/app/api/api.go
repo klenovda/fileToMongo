@@ -8,6 +8,7 @@ import (
 	"fileToMongo/pkg/apipb"
 )
 
+// Product ...
 type Product interface {
 	FetchCSV(ctx context.Context, u string) error
 	List(ctx context.Context, page *apipb.ListRequest_PagingParams, sort *apipb.ListRequest_SortingParams) ([]*database.Product, error)
@@ -18,6 +19,7 @@ type Implementation struct {
 	product Product
 }
 
+// NewApi ...
 func NewApi(product Product) *Implementation {
 	return &Implementation{
 		product: product,

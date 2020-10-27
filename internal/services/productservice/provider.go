@@ -22,6 +22,7 @@ const (
 	csvComma     rune   = ';'
 )
 
+// Storage implements db
 type Storage interface {
 	Find(ctx context.Context, limit int64, page int64, sortField string, sortValue int, filters interface{}) ([]*database.Product, error)
 	Upsert(ctx context.Context, products map[string]*database.Product) error
@@ -39,6 +40,7 @@ func NewProvider(db Storage) *Provider {
 	}
 }
 
+// FetchCSV download csv file, parse and safe in db
 func (p *Provider) FetchCSV(ctx context.Context, u string) error {
 	if filepath.Ext(u) != csvExtension {
 		return nil
@@ -83,6 +85,7 @@ func (p *Provider) FetchCSV(ctx context.Context, u string) error {
 	return nil
 }
 
+// List from db
 func (p *Provider) List(ctx context.Context, page *apipb.ListRequest_PagingParams, sort *apipb.ListRequest_SortingParams) ([]*database.Product, error) {
 	return p.db.Find(ctx, page.Limit, page.Page, sort.Param, sortValue(sort.Sort), bson.M{})
 }
